@@ -1,9 +1,9 @@
 {
-  "name": "html-webpack-plugin",
+  "name": "html-webpack-plugin-to-multihtml",
   "version": "3.2.0",
   "license": "MIT",
   "description": "Simplifies creation of HTML files to serve your webpack bundles",
-  "author": "Charles Blaxland <charles.blaxland@gmail.com> (https://github.com/ampedandwired)",
+  "author": "Charles Blaxland <charles.blaxland@gmail.com> (https://github.com/ampedandwired),edit by sumtk",
   "main": "index.js",
   "files": [
     "lib/",

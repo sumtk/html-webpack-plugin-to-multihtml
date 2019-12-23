@@ -33,7 +33,9 @@ class HtmlWebpackPlugin {
       chunksSortMode: 'auto',
       meta: {},
       title: 'Webpack App',
-      xhtml: false
+      xhtml: false,
+      // resolve multi html recompile slow
+      multihtmlCache: false
     }, options);
   }
 
@@ -41,6 +43,11 @@ class HtmlWebpackPlugin {
     const self = this;
     let isCompilationCached = false;
     let compilationPromise;
+    // cache childCompilation
+    let childCompilation = null;
+    // when done, set true;
+    // when childCompilation's fileDependencies had changed, set false
+    let isValidChildCompilation = false;
 
     this.options.template = this.getFullTemplatePath(this.options.template, compiler.context);
 
@@ -65,8 +72,35 @@ class HtmlWebpackPlugin {
       });
     }
 
+    // Backwards compatible version of: compiler.hooks.invalid.tapAsync()
+    (compiler.hooks ? compiler.hooks.invalid.tap.bind(compiler.hooks.invalid, 'HtmlWebpackPlugin') : compiler.plugin.bind(compiler, 'invalid'))(fileName => {
+      if (childCompilation &&
+        childCompilation.fileDependencies.has(fileName)) {
+        isValidChildCompilation = false;
+      }
+    });
+
+    // Backwards compatible version of: compiler.hooks.done.tapAsync()
+    (compiler.hooks ? compiler.hooks.done.tap.bind(compiler.hooks.done, 'HtmlWebpackPlugin') : compiler.plugin.bind(compiler, 'done'))(stats => {
+      let compilation = stats.compilation;
+      if (childCompilation) {
+        // webpack watch
+        childCompilation.fileDependencies.forEach(function (fileName) {
+          if (!compilation.fileDependencies.has(fileName)) {
+            compilation.fileDependencies.add(fileName);
+          }
+        });
+      }
+
+      isValidChildCompilation = true;
+    });
+
     // Backwards compatible version of: compiler.hooks.make.tapAsync()
     (compiler.hooks ? compiler.hooks.make.tapAsync.bind(compiler.hooks.make, 'HtmlWebpackPlugin') : compiler.plugin.bind(compiler, 'make'))((compilation, callback) => {
+      if (self.options.multihtmlCache && isValidChildCompilation) {
+        return callback();
+      }
+
       // Compile the template (queued)
       compilationPromise = childCompiler.compileTemplate(self.options.template, compiler.context, self.options.filename, compilation)
         .catch(err => {
@@ -77,6 +111,8 @@ class HtmlWebpackPlugin {
           };
         })
         .then(compilationResult => {
+          childCompilation = compilationResult.childCompilation;
+
           // If the compilation change didnt change the cache is valid
           isCompilationCached = compilationResult.hash && self.childCompilerHash === compilationResult.hash;
           self.childCompilerHash = compilationResult.hash;
@@ -88,6 +124,9 @@ class HtmlWebpackPlugin {
 
     // Backwards compatible version of: compiler.plugin.emit.tapAsync()
     (compiler.hooks ? compiler.hooks.emit.tapAsync.bind(compiler.hooks.emit, 'HtmlWebpackPlugin') : compiler.plugin.bind(compiler, 'emit'))((compilation, callback) => {
+      if (self.options.multihtmlCache && isValidChildCompilation) {
+        return callback();
+      }
       const applyPluginsAsyncWaterfall = self.applyPluginsAsyncWaterfall(compilation);
       // Get chunks info as json
       // Note: we're excluding stuff that we don't need to improve toJson serialization speed.
