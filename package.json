@@ -1,9 +1,9 @@
 {
   "name": "html-webpack-plugin-to-multihtml",
-  "version": "3.2.0",
+  "version": "3.2.1",
   "license": "MIT",
-  "description": "Simplifies creation of HTML files to serve your webpack bundles",
-  "author": "Charles Blaxland <charles.blaxland@gmail.com> (https://github.com/ampedandwired),edit by sumtk",
+  "description": "HtmlWebpackPlugin-MultiHtml for Webpack 4+",
+  "author": "Charles Blaxland,edit by sumtk",
   "main": "index.js",
   "files": [
     "lib/",
@@ -63,9 +63,9 @@
     "html",
     "html-webpack-plugin"
   ],
-  "bugs": "https://github.com/jantimon/html-webpack-plugin/issues",
-  "homepage": "https://github.com/jantimon/html-webpack-plugin",
-  "repository": "https://github.com/jantimon/html-webpack-plugin.git",
+  "bugs": "https://github.com/sumtk/html-webpack-plugin-to-multihtml/issues",
+  "homepage": "https://github.com/sumtk/html-webpack-plugin-to-multihtml",
+  "repository": "https://github.com/sumtk/html-webpack-plugin-to-multihtml.git",
   "engines": {
     "node": ">=6.9"
   },
